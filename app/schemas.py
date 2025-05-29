@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr
-from typing import List
+from pydantic import BaseModel, EmailStr, ConfigDict
+from datetime import datetime
+from typing import List, Optional
 
 class BlogBase(BaseModel):
     title: str
@@ -11,8 +12,15 @@ class BlogCreate(BlogBase):
 class BlogOut(BlogBase):
     id: int
     author_id: int
-    class Config:
-        orm_mode = True
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_encoders={
+            datetime: lambda dt: dt.isoformat()
+        }
+    )
 
 class UserCreate(BaseModel):
     email: EmailStr

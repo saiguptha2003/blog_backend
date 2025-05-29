@@ -1,0 +1,52 @@
+### Variables
+@baseUrl = http://localhost:8000
+@token =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzQ4NTE1MDAxfQ.EsW5KeKlw4aFcR_NOLBdU4aWX5wtn2keQnikVc_vM9Q
+
+### User Signup
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+    "email": "test@example.com",
+    "password": "password123"
+}
+
+### User Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/x-www-form-urlencoded
+
+username=test@example.com&password=password123
+
+### Save the token from login response and paste it above in @token variable
+### For subsequent requests that require authentication
+
+### Create Blog
+POST {{baseUrl}}/blogs
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "Test Blog",
+    "content": "This is a test blog post"
+    
+}
+
+### List All Blogs
+GET {{baseUrl}}/blogs?skip=0&limit=10
+
+### Get Single Blog
+GET {{baseUrl}}/blogs/1
+
+### Update Blog
+PUT {{baseUrl}}/blogs/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "Updated Test Blog",
+    "content": "This is an updated test blog post"
+}
+
+### Delete Blog
+DELETE {{baseUrl}}/blogs/1
+Authorization: Bearer {{token}}

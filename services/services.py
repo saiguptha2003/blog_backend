@@ -1,55 +1,61 @@
-from sqlalchemy.orm import Session
-from app import models, schemas, auth
+from datetime import datetime
 from fastapi import HTTPException
-from typing import List
-from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+from app import models, schemas
 from app.utils.logger import logger
-
+from fastapi.security import OAuth2PasswordRequestForm
 class BlogService:
     def __init__(self, db: Session):
         self.db = db
 
     def create_blog(self, blog: schemas.BlogCreate, current_user: models.User) -> models.Blog:
-        logger.info(f"Creating blog with title: {blog.title} for user: {current_user.email}")
         try:
-            new_blog = models.Blog(**blog.dict(), author_id=current_user.id)
+            new_blog = models.Blog(
+                title=blog.title,
+                content=blog.content,
+                author_id=current_user.id,
+                created_at=datetime.utcnow(),
+                updated_at=None
+            )
             self.db.add(new_blog)
             self.db.commit()
             self.db.refresh(new_blog)
-            logger.info(f"Successfully created blog with id: {new_blog.id}")
             return new_blog
         except Exception as e:
             logger.error(f"Error creating blog: {str(e)}")
-            raise
+            self.db.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
 
-    def list_blogs(self, skip: int = 0, limit: int = 10) -> List[models.Blog]:
+    def list_blogs(self, skip: int = 0, limit: int = 10):
         return self.db.query(models.Blog).offset(skip).limit(limit).all()
 
-    def get_blog(self, id: int) -> models.Blog:
-        blog = self.db.query(models.Blog).filter(models.Blog.id == id).first()
+    def get_blog(self, blog_id: int):
+        blog = self.db.query(models.Blog).filter(models.Blog.id == blog_id).first()
         if not blog:
             raise HTTPException(status_code=404, detail="Blog not found")
         return blog
 
-    def update_blog(self, id: int, blog: schemas.BlogCreate, current_user: models.User) -> models.Blog:
-        db_blog = self.db.query(models.Blog).filter(models.Blog.id == id).first()
-        if not db_blog or db_blog.author_id != current_user.id:
-            raise HTTPException(status_code=403, detail="Not authorized")
+    def update_blog(self, blog_id: int, blog: schemas.BlogCreate, current_user: models.User):
+        db_blog = self.get_blog(blog_id)
+        if db_blog.author_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to update this blog")
         
-        for key, value in blog.dict().items():
+        for key, value in blog.model_dump().items():
             setattr(db_blog, key, value)
-            
+        db_blog.updated_at = datetime.utcnow()
+        
         self.db.commit()
         self.db.refresh(db_blog)
         return db_blog
 
-    def delete_blog(self, id: int, current_user: models.User) -> dict:
-        db_blog = self.db.query(models.Blog).filter(models.Blog.id == id).first()
-        if not db_blog or db_blog.author_id != current_user.id:
-            raise HTTPException(status_code=403, detail="Not authorized")
+    def delete_blog(self, blog_id: int, current_user: models.User):
+        db_blog = self.get_blog(blog_id)
+        if db_blog.author_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this blog")
+        
         self.db.delete(db_blog)
         self.db.commit()
-        return {"detail": "Blog deleted"}
+        return {"message": "Blog deleted successfully"}
 
 class UserService:
     def __init__(self, db: Session):
