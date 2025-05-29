@@ -83,3 +83,10 @@ Access API documentation at:
 
 ## Logging
 - Logs are stored in app.log with daily rotation.
+
+
+## Cloud Deployments 
+
+    - https://api-blogify.onrender.com  -- backend API can go through https://api-blogify.onrender.com/docs
+
+    - https://blogify-x.netlify.app -- Frontend URL can go through ui
