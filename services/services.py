@@ -3,17 +3,24 @@ from app import models, schemas, auth
 from fastapi import HTTPException
 from typing import List
 from fastapi.security import OAuth2PasswordRequestForm
+from app.utils.logger import logger
 
 class BlogService:
     def __init__(self, db: Session):
         self.db = db
 
     def create_blog(self, blog: schemas.BlogCreate, current_user: models.User) -> models.Blog:
-        new_blog = models.Blog(**blog.dict(), author_id=current_user.id)
-        self.db.add(new_blog)
-        self.db.commit()
-        self.db.refresh(new_blog)
-        return new_blog
+        logger.info(f"Creating blog with title: {blog.title} for user: {current_user.email}")
+        try:
+            new_blog = models.Blog(**blog.dict(), author_id=current_user.id)
+            self.db.add(new_blog)
+            self.db.commit()
+            self.db.refresh(new_blog)
+            logger.info(f"Successfully created blog with id: {new_blog.id}")
+            return new_blog
+        except Exception as e:
+            logger.error(f"Error creating blog: {str(e)}")
+            raise
 
     def list_blogs(self, skip: int = 0, limit: int = 10) -> List[models.Blog]:
         return self.db.query(models.Blog).offset(skip).limit(limit).all()
@@ -49,16 +56,23 @@ class UserService:
         self.db = db
 
     def signup(self, user: schemas.UserCreate) -> models.User:
-        db_user = self.db.query(models.User).filter(models.User.email == user.email).first()
-        if db_user:
-            raise HTTPException(status_code=400, detail="Email already registered")
-        
-        hashed_pw = auth.get_password_hash(user.password)
-        new_user = models.User(email=user.email, password=hashed_pw)
-        self.db.add(new_user)
-        self.db.commit()
-        self.db.refresh(new_user)
-        return new_user
+        logger.info(f"Processing signup for email: {user.email}")
+        try:
+            db_user = self.db.query(models.User).filter(models.User.email == user.email).first()
+            if db_user:
+                logger.warning(f"Signup attempt with existing email: {user.email}")
+                raise HTTPException(status_code=400, detail="Email already registered")
+            
+            hashed_pw = auth.get_password_hash(user.password)
+            new_user = models.User(email=user.email, password=hashed_pw)
+            self.db.add(new_user)
+            self.db.commit()
+            self.db.refresh(new_user)
+            logger.info(f"Successfully created new user with email: {user.email}")
+            return new_user
+        except Exception as e:
+            logger.error(f"Error during signup: {str(e)}")
+            raise
 
     def login(self, form_data: OAuth2PasswordRequestForm) -> dict:
         user = self.db.query(models.User).filter(models.User.email == form_data.username).first()
