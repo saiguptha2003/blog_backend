@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app import models, schemas
+from app import models, schemas, auth
 from app.utils.logger import logger
 from fastapi.security import OAuth2PasswordRequestForm
 class BlogService:
