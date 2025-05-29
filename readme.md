@@ -87,6 +87,6 @@ Access API documentation at:
 
 ## Cloud Deployments 
 
-    - https://api-blogify.onrender.com  -- backend API can go through https://api-blogify.onrender.com/docs
+- https://api-blogify.onrender.com  -- backend API can go through https://api-blogify.onrender.com/docs
 
-    - https://blogify-x.netlify.app -- Frontend URL can go through ui
+- https://blogify-x.netlify.app -- Frontend URL can go through ui
