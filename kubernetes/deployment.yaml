@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-backend
+  labels:
+    app: blog-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: blog-backend
+  template:
+    metadata:
+      labels:
+        app: blog-backend
+    spec:
+      containers:
+      - name: blog-backend
+        image: saiguptha/blog-backend-k8s:0.0.1
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "200m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
