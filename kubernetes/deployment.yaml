@@ -15,14 +15,43 @@ spec:
         app: blog-backend
     spec:
       containers:
-      - name: blog-backend
-        image: saiguptha/blog-backend-k8s:0.0.1
-        ports:
-        - containerPort: 8000
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "200m"
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
+        - name: redis
+          image: redis:latest
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+        - name: rabbitmq
+          image: rabbitmq:3-management
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "200m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+        - name: blog-backend
+          image: saiguptha/blog-backend-k8s:0.0.1
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "200m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          env:
+            - name: REDIS_HOST
+              value: redis
+            - name: RABBITMQ_HOST
+              value: rabbitmq
+---

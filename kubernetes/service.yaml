@@ -3,9 +3,11 @@ kind: Service
 metadata:
   name: blog-service
 spec:
+  type: NodePort
   selector:
-    app.kubernetes.io/name: blog-backend
+    app: blog-backend
   ports:
     - protocol: TCP
-      port: 8000
+      port: 9899
       targetPort: 8000
+      nodePort: 30099  # Optional: specify a port in range 30000–32767
